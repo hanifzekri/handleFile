@@ -1,6 +1,6 @@
 <?php
 
-class handlefile {
+class handleFile {
 	
 	public $file, $fileMime, $fileSize, $sizeFormat, $isAnimate;
 	
@@ -27,7 +27,7 @@ class handlefile {
 		return $this->fileSize;
 	}
 	
-	function mime($filename){
+	function mime(){
 		$mimeLists = array('image/png' => 'png',
 							'image/jpeg' => 'jpeg',
 							'image/jpeg' => 'jpg',
@@ -80,7 +80,7 @@ class handlefile {
 
 			$fileInfo = finfo_open(FILEINFO_MIME);
 			$mimeType = finfo_file($fileInfo, $this->file);
-			finfo_close($finfo);
+			finfo_close($fileInfo);
 			$explodeMime = explode(";", $mimeType);
 			$mimeType = $explodeMime[0];
 			if (isset($mimeLists[$mimeType])) {
@@ -131,7 +131,7 @@ class handlefile {
 		}
 	}
 	
-	function upload($locat, $newName='') {
+	function upload($locat='', $newName='') {
 		if ($newName == '') $newName = uniqid();
 		if ($this->fileMime != false) {
 			$fileName = $newName . '.' . $this->fileMime;
@@ -196,14 +196,14 @@ class handlefile {
 				array_pop($explodePath);
 				array_pop($explodeName);
 				
-				$newPath = implode("/", $explodePath);
-				$newPath .= implode("/", $explodeName);
+				$newPath = implode("/", $explodePath) . '/';
+				$newPath .= implode(".", $explodeName);
 				$newPath .= $copySuffix . '.' . $explodeMime;
 				
 				$this->file = $newPath;
 			}
         
-            switch($fileExtension) {
+            switch($this->fileMime) {
                 case('jpg'): imagejpeg($virtual, $this->file, $compress); break;
                 case('jpeg'): imagejpeg($virtual, $this->file, $compress); break;
                 case('png'): imagepng($virtual, $this->file, round($compress/10)); break;
@@ -221,18 +221,16 @@ class handlefile {
 		
 		} else {
 			
-			$watermarkMime = mime($watermark);
+			$watermarkClear = stripslashes(strtolower(trim($watermark)));
+			$watermarkExplode = explode(".", $watermarkClear);
+			$watermarkMime = end($watermarkExplode);
 			
-			if ($watermarkMime != 'jpg' && $watermarkMime == 'jpeg' && $watermarkMime == 'png' && $watermarkMime == 'gif') {
+			if ($watermarkMime != 'jpg' && $watermarkMime != 'jpeg' && $watermarkMime != 'png' && $watermarkMime != 'gif') {
                 return false;
-			
-			} elseif ($this->fileMime == 'gif' and $this->isAnimate == true) {
-				//If you need to watermark an animate gif, add watermarkGIF function here and remove line blow.
-				return false;
 			
 			} else {
 				
-				switch($fileExtension) {
+				switch($this->fileMime) {
 					case('jpg'): $creation = imagecreatefromjpeg($this->file); break;
                     case('jpeg'): $creation = imagecreatefromjpeg($this->file); break;
                     case('png'): $creation = imagecreatefrompng($this->file); break;
@@ -278,15 +276,15 @@ class handlefile {
 		}
 	}
 	
-	function crop($targetWidth, $targetHeight, $from='center'){
+	function crop($targetWidth, $targetHeight, $copySuffix='', $from='center', $compress=90){
 		
-		if ($$targetWidth < 1 || $targetHeight < 1) {
+		if ($targetWidth < 1 || $targetHeight < 1) {
 			return false;
 		
 		} elseif ($this->fileMime != 'jpg' && $this->fileMime != 'jpeg' && $this->fileMime != 'png' && $this->fileMime != 'gif') {
 			return false;
 		
-		} elseif ($this->fileMime == 'gif' and $this->isAnimate == true) {
+		} elseif ($this->fileMime == 'gif' && $this->isAnimate == true) {
 			//If you need to crop an animate gif, add cropGIF function here and remove line blow.
 			return false;
 				
@@ -309,9 +307,9 @@ class handlefile {
 				
 				switch($from) {
 					case('topleft'): $PosX = 0; $PosY = 0; break;
-					case('topright'): $PosX = floor($new_width - $target_width); $PosY = 0; break;
+					case('topright'): $PosX = floor($newWidth - $targetWidth); $PosY = 0; break;
 					case('bottomleft'): $PosX = 0; $PosY = floor($newHeight - $targetHeight); break;
-					case('bottomright'): $PosX = floor($new_width - $target_width); $PosY = floor($newHeight - $targetHeight); break;
+					case('bottomright'): $PosX = floor($newWidth - $targetWidth); $PosY = floor($newHeight - $targetHeight); break;
 					default: $PosX = 0; $PosY = floor(($newHeight - $targetHeight)/2);; break;
 				}
 				
@@ -321,10 +319,10 @@ class handlefile {
 				
 				switch($from) {
 					case('topleft'): $PosX = 0; $PosY = 0; break;
-					case('topright'): $PosX = floor($new_width - $target_width); $PosY = 0; break;
+					case('topright'): $PosX = floor($newWidth - $targetWidth); $PosY = 0; break;
 					case('bottomleft'): $PosX = 0; $PosY = floor($newHeight - $targetHeight); break;
-					case('bottomright'): $PosX = floor($new_width - $target_width); $PosY = floor($newHeight - $targetHeight); break;
-					default: $PosX = floor(($new_width - $target_width)/2); $PosY = 0; break;
+					case('bottomright'): $PosX = floor($newWidth - $targetWidth); $PosY = floor($newHeight - $targetHeight); break;
+					default: $PosX = floor(($newWidth - $targetWidth)/2); $PosY = 0; break;
 				}
 			}
 			
@@ -332,7 +330,34 @@ class handlefile {
 			imagecopyresized($virtual, $creation, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 			$option = ['x' => $PosX, 'y' => $PosY, 'width' => $targetWidth, 'height' => $targetHeight];
 			$virtual = imagecrop($virtual, $option);
-			imagejpeg($virtual, $image, 100);
+			
+			if ($copySuffix == '') {
+				unlink($this->file);
+			
+			} else {
+			
+				$explodePath = explode("/", $this->file);
+				$explodeName = explode(".", end($explodePath));
+				$explodeMime = end($explodeName);
+				
+				array_pop($explodePath);
+				array_pop($explodeName);
+				
+				$newPath = implode("/", $explodePath) . '/';
+				$newPath .= implode(".", $explodeName);
+				$newPath .= $copySuffix . '.' . $explodeMime;
+				
+				$this->file = $newPath;
+			}
+			
+			switch($this->fileMime) {
+				case('jpg'): imagejpeg($virtual, $this->file, $compress); break;
+				case('jpeg'): imagejpeg($virtual, $this->file, $compress); break;
+				case('png'): imagepng($virtual, $this->file, round($compress/10)); break;
+				case('gif'): imagegif($virtual, $this->file); break;
+			}
+			
+			return $this->file;
 		}
 	}
 }
