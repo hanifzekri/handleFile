@@ -6,7 +6,6 @@
 - [Usage](#usage)
 - [Methods](#methods)
 - [Example](#example)
-- 
 ---
 
 ## Description
@@ -24,12 +23,12 @@
 
 To use the `handleFile` class, include the class in your PHP file and create an instance of the class.
 
-  <?php
+  ```php
   
   include 'handleFile.php';
   $fileHandler = new handleFile();
   
-  ?>
+  ```
 
 ---
 
@@ -70,8 +69,8 @@ This method crops the image to the specified width and height. It also accepts o
 ---
 
 ## Example
-  
-  <?php
+
+  ```php
   
   $fileHandler = new handleFile();
   $fileHandler->getFile('example.jpg');
@@ -83,6 +82,6 @@ This method crops the image to the specified width and height. It also accepts o
   $fileHandler->watermark('watermark.png', 50);
   $fileHandler->crop(200, 200, '_cropped', 'center');
   
-  ?>
+  ```
 
 For detailed usage examples, please refer to the provided code samples and comments within the `handleFile` class file.
